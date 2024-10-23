@@ -11,7 +11,7 @@ import logging
 import sys
 import uuid
 from typing import Any, Callable, Dict, List, Optional, Protocol, Tuple, Union
-
+import time
 from pydantic import BaseModel
 
 from autogen.cache import Cache
@@ -815,7 +815,18 @@ class OpenAIWrapper:
                         continue  # filter is not passed; try the next config
             try:
                 request_ts = get_current_ts()
-                response = client.create(params)
+                max_retries = 5
+                base_delay = 1.0
+                for retry in range(max_retries):
+                    try:
+                        response = client.create(params)
+                        break
+                    except Exception as e:
+                        if retry == max_retries - 1:
+                            raise
+                        delay = base_delay * (2 ** retry)
+                        logger.warning(f"Attempt {retry + 1} failed. Retrying in {delay:.2f} seconds...")
+                        time.sleep(delay)
             except APITimeoutError as err:
                 logger.debug(f"config {i} timed out", exc_info=True)
                 if i == last:
