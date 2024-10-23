@@ -825,7 +825,7 @@ class OpenAIWrapper:
                         if retry == max_retries - 1:
                             raise
                         delay = base_delay * (2 ** retry)
-                        logger.warning(f"Attempt {retry + 1} failed. Retrying in {delay:.2f} seconds...")
+                        logger.warning(f"Attempt {retry + 1} failed. Retrying in {delay:.2f} seconds... {e}")
                         time.sleep(delay)
             except APITimeoutError as err:
                 logger.debug(f"config {i} timed out", exc_info=True)
